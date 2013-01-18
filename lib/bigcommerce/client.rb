@@ -18,86 +18,55 @@ module Bigcommerce
 
     # Get all members of a resource
 
-    def categories(params={})
-      objects = get('/categories.json', params).body
-    end
-
-    def brands(params={})
-      objects = get('/brands.json', params).body
-    end
-
-    def countries(params={})
-      objects = get('/countries.json', params).body
-    end
-
-    def customers(params={})
-      objects = get('/customers.json', params).body
-    end
-
-    def options(params={})
-      objects = get('/options.json', params).body
-    end
-
-    def option_sets(params={})
-      objects = get('/optionsets.json', params).body
-    end
-
-    def orders(params={})
-      objects = get('/orders.json', params).body
-    end
-
-    def order_statuses(params={})
-      objects = get('/orderstatuses.json', params).body
-    end
-
-    def request_logs(params={})
-      objects = get('/requestlogs.json', params).body
-    end
-
     def time(params={})
       objects = get('/time', params).body
-    end
-
-    # Individual resource
-
-    def product(params={})
-      raise(ArgumentError, "Must provide an id") unless params[:id]
-      get(['/products', params[:id]].join('/')).body
-    end
-
-    # create an asset
-
-    def create_product(params)
-      raise(ArgumentError, "Must provide product attributes") unless params
-      post('/products', params).body
-    end
-
-    # update an asset
-
-    def update_product(params)
-      raise(ArgumentError, "Must provide a product") unless params
-      put("/product", params).body
-    end
-
-    # delete an asset
-
-    def delete_product(params)
-      raise(ArgumentError, "Must provide a product") unless params
-      delete("/products", params).body
     end
 
   end
 
   class Resource
 
-    def initialize(client, attributes = {})
+    def initialize(client, options = {})
       #raise "Expected a Hash for attributes, got #{attributes.inspect}" unless attributes.is_a?(Hash)
       @client = client
-      @klass = self.class.name.split('::').last
+      @klass = ::Inflection.plural(self.class.name.split('::').last).downcase
     end
 
     def all(params={})
-      objects = get("/#{::Inflection.plural(@klass).downcase}.json", params).body
+      @parent = params.select{|k,v| k.to_s.match(/_id$/)}
+      parent_id = params.delete(@parent.keys.first) if @parent
+      get("/#{[::Inflection.plural(@parent.keys.first.to_s[0..-4]).downcase.presence, @parent.values.first.presence, @klass].compact.join('/')}.json", params).body
+    end
+
+    def find(params={})
+      @parent = params.select{|k,v| k.to_s.match(/_id$/)}
+      parent_id = params.delete(@parent.keys.first) if @parent
+      # need to remove anything extraneous from params like :id
+      @id = params.delete(:id)
+      get("/#{[::Inflection.plural(@parent.keys.first.to_s[0..-4]).downcase.presence, @parent.values.first.presence, @klass, @id.presence].compact.join('/')}.json", params).body
+    end
+
+    def create(params={})
+      raise(ArgumentError, "Must provide product attributes") unless params
+      @parent = params.select{|k,v| k.to_s.match(/_id$/)}
+      parent_id = params.delete(@parent.keys.first) if @parent
+      post("/#{[::Inflection.plural(@parent.keys.first.to_s[0..-4]).downcase.presence, @parent.values.first.presence, @klass].compact.join('/')}", params).body
+    end
+
+    def update(params={})
+      raise(ArgumentError, "Must provide product attributes") unless params
+      @parent = params.select{|k,v| k.to_s.match(/_id$/)}
+      parent_id = params.delete(@parent.keys.first) if @parent
+      @id = params.delete(:id)
+      put("/#{[::Inflection.plural(@parent.keys.first.to_s[0..-4]).downcase.presence, @parent.values.first.presence, @klass, @id.presence].compact.join('/')}", params).body
+    end
+
+    def destroy(params={})
+      raise(ArgumentError, "Must provide a product") unless params
+      @parent = params.select{|k,v| k.to_s.match(/_id$/)}
+      parent_id = params.delete(@parent.keys.first) if @parent
+      # need to remove anything extraneous from params like :id
+      delete("/#{[::Inflection.plural(@parent.keys.first.to_s[0..-4]).downcase.presence, @parent.values.first.presence, @klass, params[:id]].compact.join('/')}").body
     end
 
     private
@@ -129,10 +98,11 @@ module Bigcommerce
       conn.response :mashify
       conn.response :json, :content_type => /\bjson$/
       res = conn.send(method, "/api/v2/#{path}") do |req|
-        if method == :post
-          req.body = params[:body]
-        else
+        req.headers['Content-Type'] = 'application/json'
+        if method == :get
           req.params = params
+        else
+          req.body = params.to_json
         end
       end
     end
@@ -140,6 +110,8 @@ module Bigcommerce
   end
 
   class Product < Resource
+  end
+  class Image < Resource
   end
   class Category < Resource
   end
