@@ -10,7 +10,7 @@ module Bigcommerce
     attr_reader :store_url, :username, :api_token
 
     def initialize(options={})
-      raise(ArgumentError, "Must provide both store url, username, and api token") unless options.has_key?(:username) && options.has_key?(:api_token) && options.has_key?(:store_url)
+      raise(ArgumentError, "Must provide store url, username, and api token") unless options.has_key?(:username) && options.has_key?(:api_token) && options.has_key?(:store_url)
       @store_url = options[:store_url]
       @username = options[:username]
       @api_token = options[:api_token]

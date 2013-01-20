@@ -8,8 +8,8 @@ Gem::Specification.new do |gem|
   gem.version       = Bigcommerce::VERSION
   gem.authors       = ["Adeel Ahmad"]
   gem.email         = ["adeel@shopseen.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
+  gem.description   = %q{Wrapper for BigCommerce v2 API}
+  gem.summary       = %q{Wrapper for BigCommerce v2 API}
   gem.homepage      = ""
 
   gem.files         = `git ls-files`.split($/)
