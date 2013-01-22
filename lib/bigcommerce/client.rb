@@ -96,7 +96,7 @@ module Bigcommerce
       conn.basic_auth @client.username, @client.api_token
       conn.response :logger
       conn.response :mashify
-      conn.response :json, :content_type => /\bjson$/
+      conn.response :json
       res = conn.send(method, "/api/v2/#{path}") do |req|
         req.headers['Content-Type'] = 'application/json'
         if method == :get
