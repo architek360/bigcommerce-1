@@ -47,22 +47,23 @@ module Bigcommerce
     end
 
     def create(params={})
-      raise(ArgumentError, "Must provide product attributes") unless params
+      raise(ArgumentError, "Must provide attributes") unless params
       @parent = params.select{|k,v| k.to_s.match(/_id$/)}
       parent_id = params.delete(@parent.keys.first) if @parent
       post("/#{[::Inflection.plural(@parent.keys.first.to_s[0..-4]).downcase.presence, @parent.values.first.presence, @klass].compact.join('/')}", params).body
     end
 
     def update(params={})
-      raise(ArgumentError, "Must provide product attributes") unless params
+      raise(ArgumentError, "Must provide attributes") unless params
       @parent = params.select{|k,v| k.to_s.match(/_id$/)}
       parent_id = params.delete(@parent.keys.first) if @parent
       @id = params.delete(:id)
+      puts params.inspect
       put("/#{[::Inflection.plural(@parent.keys.first.to_s[0..-4]).downcase.presence, @parent.values.first.presence, @klass, @id.presence].compact.join('/')}", params).body
     end
 
     def destroy(params={})
-      raise(ArgumentError, "Must provide a product") unless params
+      raise(ArgumentError, "Must provide an id") unless params
       @parent = params.select{|k,v| k.to_s.match(/_id$/)}
       parent_id = params.delete(@parent.keys.first) if @parent
       # need to remove anything extraneous from params like :id
@@ -95,10 +96,10 @@ module Bigcommerce
       conn = Faraday::Connection.new @client.store_url
       conn.basic_auth @client.username, @client.api_token
       conn.response :logger
-      conn.response :mashify
       conn.response :json
       res = conn.send(method, "/api/v2/#{path}") do |req|
         req.headers['Content-Type'] = 'application/json'
+        req.headers['Accept'] = 'application/json'
         if method == :get
           req.params = params
         else
@@ -130,6 +131,8 @@ module Bigcommerce
   class OrderStatus < Resource
   end
   class RequestLog < Resource
+  end
+  class ShippingAddress < Resource
   end
 
 
