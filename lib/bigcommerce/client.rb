@@ -67,7 +67,7 @@ module Bigcommerce
       @parent = params.select{|k,v| k.to_s.match(/_id$/)}
       parent_id = params.delete(@parent.keys.first) if @parent
       # need to remove anything extraneous from params like :id
-      delete("/#{[::Inflection.plural(@parent.keys.first.to_s[0..-4]).downcase.presence, @parent.values.first.presence, @klass, params[:id]].compact.join('/')}").body
+      delete("/#{[::Inflection.plural(@parent.keys.first.to_s[0..-4]).downcase.presence, @parent.values.first.presence, @klass, params[:id].presence].compact.join('/')}").body
     end
 
     private
