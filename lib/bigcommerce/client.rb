@@ -123,6 +123,10 @@ module Bigcommerce
   class Customer < Resource
   end
   class Option < Resource
+    def values(params={})
+      @id = params.delete(:id)
+      get("/#{[@klass, @id.presence, 'values'].compact.join('/')}.json", params).body
+    end
   end
   class OptionSet < Resource
   end
@@ -133,6 +137,8 @@ module Bigcommerce
   class RequestLog < Resource
   end
   class ShippingAddress < Resource
+  end
+  class Sku < Resource
   end
 
 
