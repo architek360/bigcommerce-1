@@ -111,6 +111,10 @@ module Bigcommerce
   end
 
   class Product < Resource
+    def skus(params={})
+      @id = params.delete(:id)
+      get("/#{[@klass, @id.presence, 'skus'].compact.join('/')}.json", params).body
+    end
   end
   class Image < Resource
   end
@@ -140,6 +144,7 @@ module Bigcommerce
   end
   class Sku < Resource
   end
-
+  class Value < Resource
+  end
 
 end
